@@ -90,3 +90,25 @@ class MultiVideoCaptureTupleIterable:
                 return ret
 
         return Iterator()
+
+
+VERT_FLIP = 1
+HORIZ_FLIP = 0
+BOTH_FLIP = -1
+
+
+def show_video_capture(cap, flip=VERT_FLIP):
+    cap = cv2.VideoCapture(cap)
+
+    while cap.isOpened():
+        ret, frame = cap.read()
+
+        frame = cv2.flip(frame, flip)
+
+        # Display the resulting frame
+        cv2.imshow('frame', frame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+        cap.release()
+        cv2.destroyAllWindows()

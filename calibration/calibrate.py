@@ -8,8 +8,8 @@ def calibrate(cams):
         cam_cnf = dict()
         cropper = cnp.PointCropper(n=4, camera_index=cam['idx'])
 
-        cam_cnf['width'] = int(cropper.camera.get(cv2.CAP_PROP_FRAME_WIDTH))
-        cam_cnf['height'] = int(cropper.camera.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        ret, frame = cropper.camera.read()
+        cam_cnf['height'], cam_cnf['width'], cam_cnf['channels'] = frame.shape
 
         cropper.main()
         cropper.close()
