@@ -17,7 +17,7 @@ def main():
 
         import utils.mycv2_utils as mycv2
         mycv2.show_video_capture(cap=cam)
-        
+
     elif act == "ncrop":
         import calibration.crop_n_points as cnp
 
@@ -35,7 +35,7 @@ def main():
         cropper.main()
         cropper.close()
 
-    elif act == "track":
+    elif act == "oldtrack":
         import moving_object_detection.cut_ant_track as ct
 
         conf_file_name = conf_file(conf_id=sys.argv[2])
@@ -50,7 +50,30 @@ def main():
             'front_camera': cv2.VideoCapture(front)
         }
 
-        ct.cut_and_track(conf, caps, isLogging=True)
+        ct.cut_and_track_color(conf, caps, isLogging=True)
+
+        for cap in caps.values():
+            cap.release()
+
+    elif act == "track":
+        import core.main as ct
+
+        conf_file_name = conf_file(conf_id=sys.argv[2])
+        with open(conf_file_name) as file:
+            conf = json.load(file)
+
+        front = int(sys.argv[3])
+        top = int(sys.argv[4])
+
+        caps = {
+            'top_camera': cv2.VideoCapture(top),
+            'front_camera': cv2.VideoCapture(front)
+        }
+
+        ct.do(conf, caps)
+
+        for cap in caps.values():
+            cap.release()
 
     elif act == "conf":
         conf_id = sys.argv[2]
@@ -64,7 +87,7 @@ def main():
         else:
             conf = dict()
 
-        if cnf_act == 'calib':
+        if cnf_act == 'bcalib':
             import calibration.calibrate as calib
 
             cams = [
@@ -73,11 +96,25 @@ def main():
                     'name': 'front_camera'
                 },
                 {
+                    'idx': int(sys.argv[4]),
+                    'name': 'menu_camera'
+                },
+                {
                     'idx': int(sys.argv[5]),
                     'name': 'top_camera'
                 }
             ]
-            conf['calibration'] = calib.calibrate(cams)
+            conf['calibration'] = calib.board_calibrate(cams)
+
+        elif cnf_act == 'mcalib':
+            import calibration.calibrate as calib
+            menu_cnf = conf['calibration']['menu']
+            cropper = 
+
+            camera = cv2.VideoCapture(int(sys.argv[4]))
+
+
+            conf['menu'] = calib.menu_calibrate(cams)
 
         with open(file_name, 'w') as file:
             json.dump(conf, file, indent=4)

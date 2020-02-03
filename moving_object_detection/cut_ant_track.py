@@ -1,10 +1,14 @@
 import cv2
+import numpy as np
+
 from utils import vlogger
 from utils.dataclass import DataClass
 from utils.path_cutout import CutOutCropper
 import utils.mycv2_utils as mycv2
 
-from matplotlib import pyplot as plt
+import time
+
+# from matplotlib import pyplot as plt
 
 folder_name = 'fname'
 
@@ -130,3 +134,130 @@ def cut_and_track(conf, caps, loc=".", isLogging=True):
 
     cv2.destroyAllWindows()
     logger.release()
+
+
+def draw_paths(frame, paths):
+    for path in paths:
+        if len(path) < 2:
+            continue
+        i = 0
+        while i < len(path) - 1:
+            cv2.line(frame, path[i], path[i + 1], green, 2)
+            i += 1
+
+
+def draw_points(frame, paths):
+    for path in paths:
+        if len(path) < 2:
+            continue
+        for point in path:
+            cv2.circle(frame, point, 1, (0, 0, 255), 2)
+
+
+# HELP https://www.learnopencv.com/find-center-of-blob-centroid-using-opencv-cpp-python/
+def cut_and_track_color(conf, caps, loc=".", isLogging=True):
+    org = cv2.imread('img/board75%.png')
+    cv2.rotate(org, cv2.ROTATE_90_CLOCKWISE, org)
+
+    lower = np.array([35, 140, 60])
+    upper = np.array([255, 255, 180])
+
+    front_cap = caps['front_camera']
+    front_cnf = conf['calibration']['front_camera']
+
+    shape = front_cnf['height'], front_cnf['width'], front_cnf['channels']
+    front_cropper = CutOutCropper(shape, front_cnf['points'])
+
+    bh, bw, _ = org.shape
+    ch, cw = front_cropper.dimensions
+    cox, coy = front_cropper.startpoint
+
+    def xy_to_board(x, y):
+        new_x = bh * (x / ch)
+        new_y = bw * (y / cw)
+        xy = int(new_x), int(new_y)
+        return xy
+
+    def do_front(frame):
+        cutout = front_cropper.cutout(frame)
+        hsv = cv2.cvtColor(cutout, cv2.COLOR_BGR2HSV)
+        mask = cv2.inRange(hsv, lower, upper)
+        # result = cv2.bitwise_and(cutout, cutout, mask=mask)
+        try:
+            M = cv2.moments(mask)
+            cX = int(M["m10"] / M["m00"])
+            cY = int(M["m01"] / M["m00"])
+            ret = cX, cY
+            cv2.circle(frame, (cox + cX, coy + cY), 5, green, -1)
+            # cv2.circle(board, xy_to_board(cX, cY), 5, green, -1)
+            # cv2.putText(frame, "centroid", (cX - 25, cY - 25), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        except ZeroDivisionError:
+            ret = None
+
+        return ret
+
+    top_cap = caps['top_camera']
+    top_cnf = conf['calibration']['top_camera']
+
+    top_shape = top_cnf['height'], top_cnf['width'], top_cnf['channels']
+    top_cropper = CutOutCropper(top_shape, top_cnf['points'])
+
+    def do_top(frame):
+        cutout = top_cropper.cutout(frame)
+        hsv = cv2.cvtColor(cutout, cv2.COLOR_BGR2HSV)
+        mask = cv2.inRange(hsv, lower, upper)
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        filtered = []
+        for contour in contours:
+            area = cv2.contourArea(contour)
+            if not area <= 70:
+                filtered.append(contour)
+
+        cv2.drawContours(cutout, filtered, -1, (0, 0, 255), cv2.FILLED)
+        cv2.imshow('TOP_FILTERED', cutout)
+        return len(filtered) > 0
+
+    path = list()
+    paths = list()
+    while front_cap.isOpened() and top_cap.isOpened():
+        start_time = time.time()
+        board = org.copy()
+        r= False
+        while not r:
+            r, top_frame = top_cap.read()
+        # assert r
+        r = False
+        while not r:
+            r, front_frame = front_cap.read()
+        #assert r
+
+
+        touching = do_top(top_frame)
+        if touching:
+            quard = do_front(front_frame)
+            if quard is not None:
+                quard = xy_to_board(*quard)
+                path.append(quard)
+        elif len(path) > 0:
+            paths.append(path)
+            path = list()
+
+        draw_paths(board, paths + [path])
+        draw_points(board, paths + [path])
+
+        # cv2.imshow('mask', mask)
+        # cv2.imshow('cutout', cutout)
+        cv2.imshow('Board', front_frame)
+        cv2.imshow('Image Board', board)
+
+        end_time = time.time()
+        loop_duration = round((end_time - start_time) * 1000)
+        time_left = (1000 // 30) - int(loop_duration)
+        if time_left <= 0:
+            time_left = 1
+
+        key = cv2.waitKey(time_left)
+        if key == ord('q'):
+            break
+        elif key == ord('c'):
+            paths.clear()

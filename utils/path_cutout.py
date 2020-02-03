@@ -68,5 +68,9 @@ class CutOutCropper:
     def dimensions(self):
         return self.__width, self.__height
 
+    @property
+    def startpoint(self):
+        return self.x_b[0], self.y_b[0]
+
     def cutout(self, frame):
         return cutout(frame, self.mask, self.x_b, self.y_b)

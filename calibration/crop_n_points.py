@@ -54,7 +54,6 @@ class PointCropper:
         return self.__camera
 
     def main(self):
-
         cv2.namedWindow('Camera')
         cv2.setMouseCallback('Camera', self.track_mouse)
 
@@ -66,7 +65,7 @@ class PointCropper:
             # Our operations on the frame come here
             # gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 
-            frame = cv2.flip(frame, 1)
+            # frame = cv2.flip(frame, 1)
             f_copy = frame.copy()
             self.draw(f_copy)
 
