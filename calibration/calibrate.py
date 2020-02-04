@@ -1,8 +1,10 @@
-import cv2
 import calibration.crop_n_points as cnp
+import cv2
+
+from utils.mycv2_utils import paint_lines
 
 
-def calibrate(cams):
+def board_calibrate(cams):
     res = dict()
     for cam in cams:
         cam_cnf = dict()
@@ -19,3 +21,52 @@ def calibrate(cams):
         res[cam['name']] = cam_cnf
 
     return res
+
+
+colors = {
+    'black': (0, 0, 0),
+    'orange': (0, 0x8C, 0xFF),
+    'green': (0, 0xFF, 0),
+    'eraser': None
+}
+
+
+def menu_calibrate(frame):
+    height, width, _ = frame.shape
+
+    line = None
+    lines = [0, width]
+
+    def track_mouse(event, x, y, flags, param):
+        nonlocal line, lines
+        if event == cv2.EVENT_LBUTTONDOWN:
+            lines.append(x)
+        elif event == cv2.EVENT_MOUSEMOVE:
+            line = x
+
+    cv2.namedWindow('Menu')
+    cv2.setMouseCallback('Menu', track_mouse)
+
+    while True:
+        f_copy = frame.copy()
+        paint_lines(f_copy, height, lines + [line])
+
+        cv2.imshow('Menu', f_copy)
+
+        key = cv2.waitKey(1) & 0xFF
+        if key == ord('q'):
+            break
+        elif key == ord('c'):
+            lines = [0, width]
+
+    lines.sort()
+
+    result = list()
+    for i in range(1, len(lines)):
+        color = input(f'Color of button #{i}:')
+        result.append({
+            'bottom': lines[i - 1],
+            'upper': lines[i],
+            'color': colors[color.strip().lower()]
+        })
+    return result

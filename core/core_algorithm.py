@@ -1,15 +1,27 @@
 from core import detector as detector
+import shapely.geometry
+
+from utils.classes import PointHolder
 
 THRESHOLD = 70
 COLOR_LIMITS = detector.BLUE_LIM
 
 
-def core(front_c, top_c, menu_c, ph, displayer):
-    QUARD = None
+def find_button(x, y, menu_buttons):
+    for limits in menu_buttons:
+        if x in range(*limits):
+            return menu_buttons[limits]
+
+
+def core(front_c, top_c, menu_c, displayer, state):
+    ph: PointHolder = state.ph
+    color = state.color
+    is_eraser = color is None
+    board_location, menu_location = None, None
     ##
     # Determine if object is touching
     ##
-    touching, contours = detector.detect_object_presence(top_c, COLOR_LIMITS, THRESHOLD)
+    touching, top_contours = detector.detect_object_presence(top_c, COLOR_LIMITS, THRESHOLD)
 
     ##
     # IF touching any:
@@ -39,21 +51,30 @@ def core(front_c, top_c, menu_c, ph, displayer):
     # | |
     ##
     if touching:
-        on_board, quard = detector.detect_object_location(front_c, COLOR_LIMITS)
+        on_board, board_location = detector.detect_object_location(front_c, COLOR_LIMITS)
 
         if on_board:
-            ph.add_to_path(displayer.place_point(*quard))
-            QUARD = quard
+            if is_eraser:
+                to_erase = []
+                point = shapely.geometry.Point(*board_location)
+                for path in ph.paths[:-1]:
+                    ls = shapely.geometry.LineString(path['points'])
+                    if point.intersects(ls):
+                        to_erase.append(path)
+                ph.remove_paths(to_erase)
+            else:
+                ph.add_to_path(board_location)
 
         else:
-            on_menu, quard = False, None  # detector.detect_object_location(menu_c, COLOR_LIMITS)
+            on_menu, menu_location = detector.detect_object_location(menu_c, COLOR_LIMITS)
             if on_menu:
-                pass
+                button = find_button(*menu_location, state.menu['buttons'])
+                state.setcolor(button)
 
     else:
-        if ph.path_len > 1:
+        if ph.path_len > 2:
             ph.finish_path()
-        else:
+        elif ph.path_len > 0:
             ph.clear_path()
 
-    return contours, QUARD
+    return top_contours, (menu_location, board_location)

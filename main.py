@@ -4,6 +4,8 @@ import json
 
 import cv2
 
+from utils.path_cutout import CutOutCropper
+
 
 def conf_file(conf_id):
     return f"conf/{conf_id}.conf.json"
@@ -108,16 +110,28 @@ def main():
 
         elif cnf_act == 'mcalib':
             import calibration.calibrate as calib
-            menu_cnf = conf['calibration']['menu']
-            cropper = 
+            cnf = conf['calibration']['menu_camera']
+            shape = cnf['height'], cnf['width'], cnf['channels']
+            cropper = CutOutCropper(shape, cnf['points'])
 
             camera = cv2.VideoCapture(int(sys.argv[4]))
+            r, frame = camera.read()
+            assert r
+            camera.release()
 
+            frame = cropper.cutout(frame)
 
-            conf['menu'] = calib.menu_calibrate(cams)
+            conf['menu'] = calib.menu_calibrate(frame)
+        else:
+            print('No such operation')
+            exit(1)
 
         with open(file_name, 'w') as file:
             json.dump(conf, file, indent=4)
+
+    else:
+        print('No such operation')
+        exit(1)
 
 
 if __name__ == '__main__':
