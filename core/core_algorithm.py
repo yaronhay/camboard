@@ -1,10 +1,12 @@
+import numpy as np
+
 from core import detector as detector
-import shapely.geometry
 
 from utils.classes import PointHolder
 
-THRESHOLD = 70
-COLOR_LIMITS = detector.BLUE_LIM
+THRESHOLD = 0
+COLOR_LIMITS = detector.RED_LIM
+EPS = 5
 
 
 def find_button(x, y, menu_buttons):
@@ -56,10 +58,10 @@ def core(front_c, top_c, menu_c, displayer, state):
         if on_board:
             if is_eraser:
                 to_erase = []
-                point = shapely.geometry.Point(*board_location)
+                point = np.asarray(board_location)
                 for path in ph.paths[:-1]:
-                    ls = shapely.geometry.LineString(path['points'])
-                    if point.intersects(ls):
+                    points = [np.asarray(p) for p in path['points']]
+                    if is_point_close_to_path(points, point, eps=EPS):
                         to_erase.append(path)
                 ph.remove_paths(to_erase)
             else:
@@ -78,3 +80,51 @@ def core(front_c, top_c, menu_c, displayer, state):
             ph.clear_path()
 
     return top_contours, (menu_location, board_location)
+
+
+# def is_point_on_line(p, p1, p2):
+#     x,y= p
+#     x1, y1 = p1,
+#     x2, y2 = p2
+#
+#     if y1 > y2:
+#         y1, y2 = y2, y1
+#
+#     if x1 == x2:
+#         return x == x1 and y1 <= y <= y2
+#     else:
+
+# https://diego.assencio.com/?index=ec3d5dfdfc0b6a0d147a656f0af332bd
+def closest_point(x, p, q):
+
+    # line s = p + lamb*(q - p)
+    qmp = q - p
+
+    # lamb = ((x-p)*(q-p))/((q-p)*(q-p))
+    numerator = np.dot(x - p, qmp)
+    denominator = np.dot(qmp, qmp)
+
+    if numerator <= 0:  # lamb <= 0:
+        return p
+    elif numerator >= denominator:  # lamb >= 1
+        return q
+    else:  # 0 < lamb < 1
+        lamb = numerator / denominator
+        return p + lamb * qmp
+
+
+def is_point_close_to_path(path, point, eps):
+    epssq = eps * eps
+    i = 0
+    lim = len(path) - 1
+    while i < lim:
+        closest = closest_point(point, path[i], path[i + 1])
+        delta = point - closest
+        inner = np.inner(delta, delta)
+        # print(f'point{point} closest{closest} dist{inner} line: {path[i]}-{path[i + 1]}')
+        if inner < epssq:
+            # print(True)
+            return True
+
+        i += 1
+    return False

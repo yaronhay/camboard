@@ -12,7 +12,8 @@ class PointHolder:
         }]
 
     def add_to_path(self, point):
-        self.__path.append(point)
+        if len(self.__path) == 0 or point != self.__path[-1]:
+            self.__path.append(point)
 
     def clear_path(self):
         self.__path = list()

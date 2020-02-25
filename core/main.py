@@ -7,8 +7,10 @@ from core.core_algorithm import core
 from core.display import Display
 from utils.classes import PointHolder
 from utils.dataclass import DataClass
-from utils.mycv2_utils import paint_lines
 from utils.path_cutout import CutOutCropper
+
+
+
 
 
 def iteration(displayer, cams, state):
@@ -41,15 +43,17 @@ def iteration(displayer, cams, state):
     drawn = displayer.draw(state.ph.paths)
     if board_location is not None:
         drawn = display.draw_point(drawn, *displayer.place_point(*board_location), color=(128, 0, 128), radius=10)
+    cv2.namedWindow('Board Drawing', cv2.WND_PROP_FULLSCREEN)
+    cv2.setWindowProperty('Board Drawing', cv2.WND_PROP_FULLSCREEN, cv2.WINDOW_FULLSCREEN)
     cv2.imshow('Board Drawing', drawn)
 
     cv2.drawContours(top_c, contours, -1, display.GREEN, cv2.FILLED)
     cv2.imshow('Top Camera', top_c)
 
-    paint_lines(menu_c, menu_c.shape[0], state.menu['lines'])
-    if menu_location is not None:
-        menu_c = display.draw_point(menu_c, *menu_location, *(0, 0))
-    cv2.imshow('Menu Camera', menu_c)
+    # paint_lines(menu_c, menu_c.shape[0], state.menu['lines'])
+    # if menu_location is not None:
+    #     menu_c = display.draw_point(menu_c, *menu_location, *(0, 0))
+    # cv2.imshow('Menu Camera', menu_c)
 
     display.draw_polygon(front_frame, front.points)
     if board_location is not None:
@@ -60,6 +64,8 @@ def iteration(displayer, cams, state):
 
 
 def main_loop(period, displayer, cams, state):
+    too_long = 0
+    total = 0
     while all(cam.camera.isOpened() for cam in cams if cam is not None):
         start_time = time.time()
 
@@ -67,10 +73,16 @@ def main_loop(period, displayer, cams, state):
 
         end_time = time.time()
         loop_duration = round((end_time - start_time) * 1000)
-        loop_duration_ms = period - int(loop_duration)
-        time_left = loop_duration_ms if loop_duration_ms > 0 else 1
+        time_left = period - int(loop_duration)
+
+        if time_left <= 0:
+            too_long += 1
+            time_left = 1
+        total += 1
 
         key = cv2.waitKey(time_left)
+        # print(f'time taken: {loop_duration} out of {period} toolong {too_long} / {total} delay = {time_left}', ' ',
+        #      end='\r')
         if key == ord('q'):
             break
         elif key == ord('c'):
@@ -112,6 +124,7 @@ def do(conf, caps):
     menu_lines = {
         button['upper'] for button in menu_conf
     }
+
     menu_lines.remove(max(menu_lines))
 
     ##
@@ -123,7 +136,7 @@ def do(conf, caps):
         'setcolor': None,
         'menu': {
             'buttons': menu_buttons,
-            'lines': menu_lines
+            'lines': menu_lines,
         }
     })
 
@@ -139,6 +152,7 @@ def do(conf, caps):
     ##
     # Main Loop
     ##
-    fps = 30
+    fps = 15
     period = 1000 // fps
     main_loop(period, displayer, (front, top, menu), state)
+    print()

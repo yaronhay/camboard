@@ -1,7 +1,9 @@
 import cv2
+import numpy as np
 
 GREEN = 0, 0xFF, 0
 RED = 0, 0, 0xFF
+BLUE = 0xFF, 0, 0
 
 
 def draw_path(frame, path, color):
@@ -17,21 +19,29 @@ def indicate_points(frame, path, radius=1):
     if len(path) < 2:
         return
     for point in path:
-        cv2.circle(frame, point, radius, RED, 2)
+        cv2.circle(frame, point, radius, BLUE, 7)
 
 
 class Display:
-    def __init__(self, size, state, path='img/board75%.png'):
+    def __init__(self, size, state):
+        print(size)
         self.__state = state
-        self.__board = cv2.imread(path)
+        # self.__board = cv2.imread(path)
+        self.__board = np.full((1080, 1920, 3), 0xFF, np.uint8)
+        cv2.rectangle(self.__board, (0, 0), (1920, 1080), (128, 128, 128), thickness=70)
         cv2.rotate(self.__board, cv2.ROTATE_90_CLOCKWISE, self.__board)
 
-        self.__f_height, self.__f_width = size
+        self.__f_width, self.__f_height = size
+        print(self.__board.shape)
         self.__b_height, self.__b_width, _ = self.__board.shape
 
+
     def place_point(self, x, y):
-        new_x = self.__b_height * (x / self.__f_height)
-        new_y = self.__b_width * (y / self.__f_width)
+        new_x = self.__b_width * (x / self.__f_width)
+        new_y = self.__b_height * (y / self.__f_height)
+        #print((x, y), (new_x, new_y))
+        # assert new_x <= self.__b_width
+        # assert new_y <= self.__b_height
         return int(new_x), int(new_y)
 
     def draw(self, paths):
@@ -48,9 +58,10 @@ class Display:
 
         if self.__state.color is not None:
             color = self.__state.color
-            cv2.rectangle(frame, (7, 7), (17, 17), color, cv2.FILLED)
-            cv2.putText(frame, 'Color', (20, 17), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 0))
-
+            cv2.rectangle(frame, (7, 7), (30, 30), color, cv2.FILLED)
+            cv2.putText(frame, 'Color', (33, 33), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 0))
+        else:
+            cv2.putText(frame, 'Eraser', (33, 33), cv2.FONT_HERSHEY_PLAIN, 2, (0, 0, 0))
         return frame
 
 
