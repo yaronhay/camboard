@@ -1,3 +1,6 @@
+import os
+from datetime import datetime, timedelta
+
 import numpy as np
 
 from core import detector as detector
@@ -7,6 +10,10 @@ from utils.classes import PointHolder
 THRESHOLD = 0
 COLOR_LIMITS = detector.RED_LIM
 EPS = 5
+MIN_TIME_DELTA = timedelta(seconds=3)
+
+screenshot_time_stamp = datetime.now()
+board_pen_time_stamp = datetime.now()
 
 
 def find_button(x, y, menu_buttons):
@@ -16,6 +23,7 @@ def find_button(x, y, menu_buttons):
 
 
 def core(front_c, top_c, menu_c, displayer, state):
+    global screenshot_time_stamp, board_pen_time_stamp
     ph: PointHolder = state.ph
     color = state.color
     is_eraser = color is None
@@ -64,6 +72,7 @@ def core(front_c, top_c, menu_c, displayer, state):
                     if is_point_close_to_path(points, point, eps=EPS):
                         to_erase.append(path)
                 ph.remove_paths(to_erase)
+
             else:
                 ph.add_to_path(board_location)
 
@@ -71,7 +80,25 @@ def core(front_c, top_c, menu_c, displayer, state):
             on_menu, menu_location = detector.detect_object_location(menu_c, COLOR_LIMITS)
             if on_menu:
                 button = find_button(*menu_location, state.menu['buttons'])
-                state.setcolor(button)
+                if button == 'camera':
+                    now = datetime.now()
+                    delta = now - screenshot_time_stamp
+                    screenshot_time_stamp = now
+
+                    if delta > MIN_TIME_DELTA:
+                        print("in")
+                        subject = 'Your Boardshot'
+                        content = 'Here is you boardshot - the screenshot of your smart board, ' \
+                                  f'taken on {now.strftime("%c")}:'
+                        address = 'yaron.hay@live.biu.ac.il'
+                        file_name = f"Boardshot{now.strftime('%Y_%m_%d_%H_%M_%S')}.png"
+
+                        os.system(f"screencapture {file_name}")
+                        print(content)
+                        os.system(f"./core/email.sh {address} \"{subject}\" \"{content}\" {file_name}")
+                else:
+                    state.setcolor(button)
+
 
     else:
         if ph.path_len > 2:
@@ -96,7 +123,6 @@ def core(front_c, top_c, menu_c, displayer, state):
 
 # https://diego.assencio.com/?index=ec3d5dfdfc0b6a0d147a656f0af332bd
 def closest_point(x, p, q):
-
     # line s = p + lamb*(q - p)
     qmp = q - p
 

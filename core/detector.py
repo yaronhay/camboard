@@ -21,7 +21,7 @@ def estimate_location(mask):
         M = cv2.moments(mask)
         cX = int(M["m10"] / M["m00"])
         cY = int(M["m01"] / M["m00"])
-        print(cX, cY, mask.shape)
+        # print(cX, cY, mask.shape)
         return True, (cX, cY)
     except ZeroDivisionError:
         return False, None

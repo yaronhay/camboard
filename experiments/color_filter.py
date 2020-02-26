@@ -3,7 +3,7 @@
 import cv2
 import numpy as np
 
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(2)
 
 cv2.namedWindow('Colorbars')  # Create a window named 'Colorbars'
 
@@ -22,11 +22,11 @@ vl = 'Value Low'
 wnd = 'Colorbars'
 # Begin Creating trackbars for each
 cv2.createTrackbar(hl, wnd, 0, 179, nothing)
-cv2.createTrackbar(hh, wnd, 0, 179, nothing)
-cv2.createTrackbar(sl, wnd, 0, 255, nothing)
-cv2.createTrackbar(sh, wnd, 0, 255, nothing)
-cv2.createTrackbar(vl, wnd, 0, 255, nothing)
-cv2.createTrackbar(vh, wnd, 0, 255, nothing)
+cv2.createTrackbar(hh, wnd, 10, 179, nothing)
+cv2.createTrackbar(sl, wnd, 178, 255, nothing)
+cv2.createTrackbar(sh, wnd, 255, 255, nothing)
+cv2.createTrackbar(vl, wnd, 177, 255, nothing)
+cv2.createTrackbar(vh, wnd, 255, 255, nothing)
 
 while (1):
     _, frame = cap.read()

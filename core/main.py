@@ -10,9 +10,6 @@ from utils.dataclass import DataClass
 from utils.path_cutout import CutOutCropper
 
 
-
-
-
 def iteration(displayer, cams, state):
     front, top, menu = cams
 
@@ -116,8 +113,16 @@ def do(conf, caps):
     ##
     menu_conf = conf['menu']
 
+    def process_color(c):
+        if c is None:
+            return None
+        elif type(c) is str:
+            return c
+        else:
+            return tuple(c)
+
     menu_buttons = {
-        (button['bottom'], button['upper']): None if button['color'] is None else tuple(button['color'])
+        (button['bottom'], button['upper']): process_color(button['color'])
         for button in menu_conf
     }
 
@@ -142,8 +147,10 @@ def do(conf, caps):
 
     def colorset(c):
         nonlocal state
-        state.color = c
-        state.ph.color = c
+
+        if c is None or type(c) is tuple:
+            state.color = c
+            state.ph.color = c
 
     state.setcolor = colorset
 
@@ -152,7 +159,7 @@ def do(conf, caps):
     ##
     # Main Loop
     ##
-    fps = 15
+    fps = 25
     period = 1000 // fps
     main_loop(period, displayer, (front, top, menu), state)
     print()

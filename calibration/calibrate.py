@@ -24,10 +24,12 @@ def board_calibrate(cams):
 
 
 colors = {
+    'blue': (255,191,0),
     'black': (0, 0, 0),
     'orange': (0, 0x8C, 0xFF),
     'green': (0, 0xFF, 0),
-    'eraser': None
+    'eraser': None,
+    'camera': 'camera'
 }
 
 
