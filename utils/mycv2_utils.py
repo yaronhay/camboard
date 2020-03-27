@@ -114,7 +114,7 @@ def show_video_capture(cap, flip=VERT_FLIP):
     cv2.destroyAllWindows()
 
 
-def paint_lines(frame, height, lines, color=(0xFF, 0, 0)):
+def paint_lines(frame, height, lines, color=(0xFF, 0, 0), thickness=10):
     for line in lines:
         if line is not None:
-            cv2.line(frame, (line, 0), (line, height), color)
+            cv2.line(frame, (line, 0), (line, height), color, thickness)

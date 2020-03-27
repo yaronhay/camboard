@@ -10,7 +10,8 @@ from utils.classes import PointHolder
 THRESHOLD = 0
 COLOR_LIMITS = detector.RED_LIM
 EPS = 5
-MIN_TIME_DELTA = timedelta(seconds=3)
+BUTTON_MIN_TIME_DELTA = timedelta(seconds=3)
+PEN_MIN_TIME_DELTA = timedelta(milliseconds=500)
 
 screenshot_time_stamp = datetime.now()
 board_pen_time_stamp = datetime.now()
@@ -74,6 +75,7 @@ def core(front_c, top_c, menu_c, displayer, state):
                 ph.remove_paths(to_erase)
 
             else:
+                board_pen_time_stamp = datetime.now()
                 ph.add_to_path(board_location)
 
         else:
@@ -85,7 +87,7 @@ def core(front_c, top_c, menu_c, displayer, state):
                     delta = now - screenshot_time_stamp
                     screenshot_time_stamp = now
 
-                    if delta > MIN_TIME_DELTA:
+                    if delta > BUTTON_MIN_TIME_DELTA:
                         print("in")
                         subject = 'Your Boardshot'
                         content = 'Here is you boardshot - the screenshot of your smart board, ' \
@@ -101,10 +103,14 @@ def core(front_c, top_c, menu_c, displayer, state):
 
 
     else:
-        if ph.path_len > 2:
-            ph.finish_path()
-        elif ph.path_len > 0:
-            ph.clear_path()
+        now = datetime.now()
+        delta = now - board_pen_time_stamp
+        # board_pen_time_stamp = now
+        if delta > PEN_MIN_TIME_DELTA:
+            if ph.path_len > 2:
+                ph.finish_path()
+            elif ph.path_len > 0:
+                ph.clear_path()
 
     return top_contours, (menu_location, board_location)
 
