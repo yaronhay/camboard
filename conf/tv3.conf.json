@@ -1,0 +1,112 @@
+{
+    "calibration": {
+        "front_camera": {
+            "height": 720,
+            "width": 1280,
+            "channels": 3,
+            "points": [
+                [
+                    248,
+                    190
+                ],
+                [
+                    959,
+                    185
+                ],
+                [
+                    953,
+                    599
+                ],
+                [
+                    257,
+                    594
+                ]
+            ]
+        },
+        "menu_camera": {
+            "height": 720,
+            "width": 1280,
+            "channels": 3,
+            "points": [
+                [
+                    443,
+                    99
+                ],
+                [
+                    762,
+                    96
+                ],
+                [
+                    763,
+                    162
+                ],
+                [
+                    441,
+                    161
+                ]
+            ]
+        },
+        "top_camera": {
+            "height": 720,
+            "width": 1280,
+            "channels": 3,
+            "points": [
+                [
+                    7,
+                    311
+                ],
+                [
+                    1272,
+                    187
+                ],
+                [
+                    1038,
+                    113
+                ],
+                [
+                    242,
+                    182
+                ]
+            ]
+        }
+    },
+    "menu": [
+        {
+            "bottom": 0,
+            "upper": 65,
+            "color": [
+                0,
+                0,
+                0
+            ]
+        },
+        {
+            "bottom": 65,
+            "upper": 128,
+            "color": [
+                255,
+                191,
+                0
+            ]
+        },
+        {
+            "bottom": 128,
+            "upper": 194,
+            "color": [
+                0,
+                255,
+                0
+            ]
+        },
+        {
+            "bottom": 194,
+            "upper": 250,
+            "color": null
+        },
+        {
+            "bottom": 250,
+            "upper": 323,
+            "color": "camera"
+        }
+    ]
+}
