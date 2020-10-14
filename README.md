@@ -1,6 +1,6 @@
 # CAMBOARD Project
 
-The CAMBOARD project was created as part of the Project Lab in Bar Ilan University.
+The CAMBOARD project was created as part of the Projects Lab at Bar Ilan University.
 CAMBOARD was created by Yaron Hay and in cooperation with HILMA tech.
 
 The CAMBOARD project won second place in the [2020 project competition](https://land.cbl.co.il/biu/innovation_and_beyond/) (Hebrew) in the Computer Science Department at Bar-Ilan University, and appeared in the [Maariv Online](https://m.maariv.co.il/business/tech/Article-793734?utm_source=whatsapp) newspaper (Hebrew). 
